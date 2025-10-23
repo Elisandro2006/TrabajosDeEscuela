@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO; // 🔹 NUEVO para manejo de archivos
 using System.Threading;
 
 class LaberintoJuego
@@ -30,10 +31,35 @@ class LaberintoJuego
         {"Pocion",0}
     };
 
+    // 🔹 Ruta del archivo de guardado
+    static string archivoGuardado = "partida_guardada.txt";
+
     static void Main()
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
-        IniciarNivel();
+
+        // 🔹 Menú inicial
+        Console.Clear();
+        Console.WriteLine("=== LABERINTO DEL TESORO ===");
+        Console.WriteLine("[1] Nueva partida");
+        Console.WriteLine("[2] Cargar partida");
+        Console.Write("Elige una opción: ");
+        ConsoleKey key = Console.ReadKey(true).Key;
+
+        if (key == ConsoleKey.D2 || key == ConsoleKey.NumPad2)
+        {
+            if (!CargarPartida())
+            {
+                Console.WriteLine("\n⚠️ No hay partida guardada. Iniciando nueva...");
+                Thread.Sleep(1000);
+                IniciarNivel();
+            }
+        }
+        else
+        {
+            IniciarNivel();
+        }
+
         while (!juegoTerminado)
         {
             MostrarLaberinto();
@@ -60,8 +86,6 @@ class LaberintoJuego
 
         jugadorX = 1;
         jugadorY = 1;
-
-        // Restaurar vidas al iniciar cada nivel
         vidas = 3;
 
         AnimarNiebla();
@@ -150,7 +174,8 @@ class LaberintoJuego
     static void MostrarLaberinto()
     {
         Console.Clear();
-        Console.WriteLine($"🌀 LABERINTO DEL TESORO 🌀   ❤️ Vidas: {vidas}   🔢 Nivel: {nivel}\n");
+        Console.WriteLine($"🌀 LABERINTO DEL TESORO 🌀   ❤️ Vidas: {vidas}   🔢 Nivel: {nivel}");
+        Console.WriteLine("[G] Guardar partida   [I] Inventario   [U] Usar poción\n");
 
         for (int y = 0; y < height; y++)
         {
@@ -158,9 +183,6 @@ class LaberintoJuego
             {
                 int vis = visibilidad[y, x];
                 if (vis == 0) { Console.ForegroundColor = ConsoleColor.DarkGray; Console.Write('░'); }
-                else if (vis == 1) { Console.ForegroundColor = ConsoleColor.Gray; Console.Write('▒'); }
-                else if (vis == 2) { Console.ForegroundColor = ConsoleColor.Gray; Console.Write('▓'); }
-                else if (vis == 3) { Console.ForegroundColor = ConsoleColor.White; Console.Write('▒'); }
                 else if (vis >= 4)
                 {
                     if (x == jugadorX && y == jugadorY) { Console.ForegroundColor = ConsoleColor.Yellow; Console.Write('☺'); }
@@ -173,12 +195,10 @@ class LaberintoJuego
                     else if (maze[y, x] == 'H') { Console.ForegroundColor = ConsoleColor.Cyan; Console.Write('♥'); }
                     else { Console.Write(' '); }
                 }
+                else { Console.Write(' '); }
             }
             Console.WriteLine();
         }
-
-        Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine("\nWASD/Flechas = mover, U = usar poción, I = inventario");
     }
 
     static void MovimientoJugador()
@@ -194,6 +214,7 @@ class LaberintoJuego
             case ConsoleKey.D: case ConsoleKey.RightArrow: newX++; break;
             case ConsoleKey.I: MostrarInventario(); return;
             case ConsoleKey.U: UsarPocion(); return;
+            case ConsoleKey.G: GuardarPartida(); return; // 🔹 NUEVO
             default: return;
         }
 
@@ -202,11 +223,21 @@ class LaberintoJuego
             jugadorX = newX;
             jugadorY = newY;
 
-            if (maze[newY, newX] == '^') { vidas--; maze[newY, newX] = ' '; if (vidas <= 0) { GameOver(); return; } Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine("\n💥 ¡Has caído en una trampa! Pierdes una vida 💥"); Console.ResetColor(); Thread.Sleep(700); }
-            if (maze[newY, newX] == 'b') { inventario["Bronce"]++; maze[newY, newX] = ' '; MensajeTesoro("Bronce", 1); }
-            if (maze[newY, newX] == 'p') { inventario["Plata"]++; maze[newY, newX] = ' '; MensajeTesoro("Plata", 3); }
-            if (maze[newY, newX] == 'o') { inventario["Oro"]++; maze[newY, newX] = ' '; MensajeTesoro("Oro", 5); }
-            if (maze[newY, newX] == 'H') { inventario["Pocion"]++; maze[newY, newX] = ' '; Console.ForegroundColor = ConsoleColor.Cyan; Console.WriteLine("\n💖 Has recogido una poción!"); Console.ResetColor(); Thread.Sleep(500); }
+            if (maze[newY, newX] == '^')
+            {
+                vidas--;
+                maze[newY, newX] = ' ';
+                if (vidas <= 0) { GameOver(); return; }
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("\n💥 ¡Has caído en una trampa! Pierdes una vida 💥");
+                Console.ResetColor();
+                Thread.Sleep(700);
+            }
+
+            if (maze[newY, newX] == 'b') { inventario["Bronce"]++; maze[newY, newX] = ' '; }
+            if (maze[newY, newX] == 'p') { inventario["Plata"]++; maze[newY, newX] = ' '; }
+            if (maze[newY, newX] == 'o') { inventario["Oro"]++; maze[newY, newX] = ' '; }
+            if (maze[newY, newX] == 'H') { inventario["Pocion"]++; maze[newY, newX] = ' '; }
 
             AnimarNiebla();
         }
@@ -235,14 +266,13 @@ class LaberintoJuego
     {
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("📦 INVENTARIO DEL JUGADOR 📦\n");
-        int totalPuntos = inventario["Bronce"] * 1 + inventario["Plata"] * 3 + inventario["Oro"] * 5;
-        Console.ForegroundColor = ConsoleColor.DarkYellow; Console.WriteLine($"Bronce: {inventario["Bronce"]}");
-        Console.ForegroundColor = ConsoleColor.White; Console.WriteLine($"Plata: {inventario["Plata"]}");
-        Console.ForegroundColor = ConsoleColor.Yellow; Console.WriteLine($"Oro: {inventario["Oro"]}");
-        Console.ForegroundColor = ConsoleColor.Cyan; Console.WriteLine($"Pociones: {inventario["Pocion"]}");
-        Console.ForegroundColor = ConsoleColor.Green; Console.WriteLine($"\nPuntuación total: {totalPuntos}");
-        Console.ForegroundColor = ConsoleColor.Cyan; Console.WriteLine("\nPresiona cualquier tecla para volver...");
+        Console.WriteLine("📦 INVENTARIO 📦\n");
+        Console.WriteLine($"Bronce: {inventario["Bronce"]}");
+        Console.WriteLine($"Plata: {inventario["Plata"]}");
+        Console.WriteLine($"Oro: {inventario["Oro"]}");
+        Console.WriteLine($"Pociones: {inventario["Pocion"]}");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("\nPresiona cualquier tecla para volver...");
         Console.ReadKey(true);
     }
 
@@ -266,12 +296,52 @@ class LaberintoJuego
         }
     }
 
-    static void MensajeTesoro(string tipo, int valor)
+    // 🔹 GUARDAR PARTIDA
+    static void GuardarPartida()
     {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"\n💎 Has encontrado un tesoro de {tipo}! (+{valor} pts)");
+        using (StreamWriter sw = new StreamWriter(archivoGuardado))
+        {
+            sw.WriteLine(nivel);
+            sw.WriteLine(vidas);
+            sw.WriteLine(jugadorX + "," + jugadorY);
+            foreach (var kv in inventario)
+                sw.WriteLine($"{kv.Key}:{kv.Value}");
+        }
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("\n💾 Partida guardada correctamente!");
         Console.ResetColor();
-        Thread.Sleep(500);
+        Thread.Sleep(800);
+    }
+
+    // 🔹 CARGAR PARTIDA
+    static bool CargarPartida()
+    {
+        if (!File.Exists(archivoGuardado)) return false;
+        try
+        {
+            string[] lineas = File.ReadAllLines(archivoGuardado);
+            nivel = int.Parse(lineas[0]);
+            vidas = int.Parse(lineas[1]);
+            string[] pos = lineas[2].Split(',');
+            jugadorX = int.Parse(pos[0]);
+            jugadorY = int.Parse(pos[1]);
+
+            for (int i = 3; i < lineas.Length; i++)
+            {
+                string[] partes = lineas[i].Split(':');
+                inventario[partes[0]] = int.Parse(partes[1]);
+            }
+
+            IniciarNivel(); // Genera nuevo laberinto
+            Console.WriteLine("\n📂 Partida cargada correctamente!");
+            Thread.Sleep(1000);
+            return true;
+        }
+        catch
+        {
+            Console.WriteLine("\n❌ Error al cargar partida.");
+            return false;
+        }
     }
 
     static void GameOver()
@@ -280,7 +350,9 @@ class LaberintoJuego
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine("\n💀 GAME OVER 💀");
-        MostrarInventario();
+        Console.ResetColor();
+        Console.WriteLine("\nPresiona una tecla para salir...");
+        Console.ReadKey(true);
         Environment.Exit(0);
     }
 
@@ -300,20 +372,20 @@ class LaberintoJuego
             if (key == ConsoleKey.S)
             {
                 nivel++;
-                IniciarNivel(); // Reinicia el laberinto y restaura vidas
+                IniciarNivel();
             }
             else
             {
-                Console.WriteLine("\nContinuar explorando el nivel actual...");
                 juegoTerminado = false;
-                Thread.Sleep(1000);
             }
         }
         else
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\n🎯 ¡Has completado todos los niveles! Puntaje final:");
-            MostrarInventario();
+            Console.WriteLine("\n🎯 ¡Has completado todos los niveles!");
+            Console.ResetColor();
+            Console.WriteLine("\nPresiona una tecla para salir...");
+            Console.ReadKey(true);
             Environment.Exit(0);
         }
     }
