@@ -1,0 +1,134 @@
+{
+  "id": 0,
+  "nombre": "root",
+  "tipo": "carpeta",
+  "contenido": "",
+  "children": [
+    {
+      "id": 1,
+      "nombre": "documentos",
+      "tipo": "carpeta",
+      "contenido": "",
+      "children": [
+        {
+          "id": 2,
+          "nombre": "trabajo",
+          "tipo": "carpeta",
+          "contenido": "",
+          "children": [
+            {
+              "id": 3,
+              "nombre": "informe_q3.doc",
+              "tipo": "archivo",
+              "contenido": "Reporte del tercer trimestre 2024",
+              "children": []
+            },
+            {
+              "id": 4,
+              "nombre": "presentacion.ppt",
+              "tipo": "archivo",
+              "contenido": "Presentación para clientes",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "nombre": "personal",
+          "tipo": "carpeta",
+          "contenido": "",
+          "children": [
+            {
+              "id": 6,
+              "nombre": "notas.txt",
+              "tipo": "archivo",
+              "contenido": "Notas personales importantes",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "nombre": "readme.txt",
+          "tipo": "archivo",
+          "contenido": "Bienvenido al sistema de archivos",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "nombre": "proyectos",
+      "tipo": "carpeta",
+      "contenido": "",
+      "children": [
+        {
+          "id": 9,
+          "nombre": "cpp",
+          "tipo": "carpeta",
+          "contenido": "",
+          "children": [
+            {
+              "id": 10,
+              "nombre": "main.cpp",
+              "tipo": "archivo",
+              "contenido": "#include <iostream>\nint main() { return 0; }",
+              "children": []
+            },
+            {
+              "id": 11,
+              "nombre": "utils.h",
+              "tipo": "archivo",
+              "contenido": "#ifndef UTILS_H\n#define UTILS_H\n#endif",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "nombre": "python",
+          "tipo": "carpeta",
+          "contenido": "",
+          "children": [
+            {
+              "id": 13,
+              "nombre": "script.py",
+              "tipo": "archivo",
+              "contenido": "#!/usr/bin/env python3\nprint('Hello World')",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "nombre": "imagenes",
+      "tipo": "carpeta",
+      "contenido": "",
+      "children": [
+        {
+          "id": 15,
+          "nombre": "vacaciones.jpg",
+          "tipo": "archivo",
+          "contenido": "binary_data_placeholder",
+          "children": []
+        },
+        {
+          "id": 16,
+          "nombre": "trabajo.png",
+          "tipo": "archivo",
+          "contenido": "binary_data_placeholder",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "nombre": "config.txt",
+      "tipo": "archivo",
+      "contenido": "version=1.0\nauthor=Equipo\ndate=2024",
+      "children": []
+    }
+  ]
+}
